@@ -9,7 +9,7 @@ var bcrypt = require("bcryptjs");
 exports.signup = (req, res) => {
   console.log("email: " + req.body.email);
   console.log("password: " + req.body.password);
-  
+
   const user = new User({
     userId: req.body.userId,
     email: req.body.email,
@@ -71,20 +71,19 @@ exports.login = (req, res) => {
 
       if (!passwordIsValid) {
         return res.status(401).send({
-          accessToken: null,
+            token: null,
           message: "Invalid Password!"
         });
       }
 
-      var token = jwt.sign({ id: user.id }, config.secret, {
+      var token = jwt.sign({ id: user._id }, config.secret, {
         expiresIn: 86400 // 24 hours
       });
 
       res.status(200).send({
-        id: user._id,
-        userId: user.userId,
-        email: user.email,
-        accessToken: token
+          userId: user._id,
+          email: user.email,
+          token: token
       });
     });
 };

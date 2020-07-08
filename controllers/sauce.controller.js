@@ -1,43 +1,47 @@
 const config = require("../config/auth.config");
 const db = require("../models/index");
+const multer = require('multer');
 const Sauce = db.sauce;
 
-//var jwt = require("jsonwebtoken");
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/images');
+    },
 
-/*exports.addSauce = (req, res) => {
-
-    console.log("sauceName: ", req.body.name);
-  const sauce = new Sauce({
-    userId: req.body.userId,
-    name: req.body.name ,
-    manufacturer: req.body.manufacturer ,
-    description: req.body.description,
-    mainPepper: req.body.mainPepper ,
-    imageUrl: req.body.imageUrl ,
-    heat: req.body.heat
-  });
-
-  sauce.save((err, sauce) => {
-    if (err) {
-      res.status(500).send({ message: err });
-      return;
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
     }
-    res.status(201).send({
-      message: "Sauce was registered successfully!"
-    })
-  });
-};*/
+});
 
-exports.addSauce = (req, res) => {
-    console.log("On veut ajouter une sauce");
-    Sauce.create(req.body)
-        .then(() => res.status(201).json({message: 'Objet enregistré !'}))
-        .catch(error => res.status(400).json({error}));
+const imageFileFilter = (req, file, cb) => {
+    if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+        return cb(new Error('You can upload only image files!'), false);
+    }
+    cb(null, true);
 };
 
-exports.updateSauce = (req, res) => {
+const upload = multer({ storage: storage, fileFilter: imageFileFilter});
+
+exports.uploadImage = upload.single('image')
+
+exports.addSauce = (req, res) => {
+    console.log(req.body.sauce);
+    console.log(req.file)
+    const sauce = JSON.parse(req.body.sauce) ;
+    sauce.imageUrl = "http://localhost:3000/images/"+req.file.originalname;
+    Sauce.create(sauce)
+        .then(() => res.status(201).json({message: 'Objet enregistré !'}))
+        .catch(error => console.log(error));
+};
+
+exports.updateSauce = (req, res,next) => {
+    let sauce = req.body;
+    if(req.file){
+        sauce = JSON.parse(req.body.sauce) ;
+        sauce.imageUrl = "http://localhost:3000/images/"+req.file.originalname;
+    }
     Sauce.findByIdAndUpdate(req.params.sauceId, {
-        $set: req.body
+        $set: sauce
     }, {new: true})
         .then((sauce) => {
             res.statusCode = 200;
@@ -46,7 +50,28 @@ exports.updateSauce = (req, res) => {
         }).catch((err) => next(err));
 }
 
-exports.allSauces = (req, res) => {
+
+exports.deleteSauce = (req, res,next) => {
+    Sauce.findOneAndDelete(req.params.sauceId)
+        .then((sauce) => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.status(201).json({message: 'Objet supprimé !'})
+        }).catch((err) => next(err));
+}
+
+exports.SauceById = (req, res,next) => {
+    Sauce.findOne({_id :req.params.sauceId})
+        .then((sauce) => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.status(201).json(sauce)
+        }).catch((err) => next(err));
+}
+
+
+
+exports.allSauces = (req, res,next) => {
     Sauce.find()
         .then((sauces) => {
             res.statusCode = 200;

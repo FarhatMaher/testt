@@ -2,6 +2,7 @@ const  verifySauce  = require("../middlewares/verifySauce");
 const controller = require("../controllers/sauce.controller");
 const express = require('express');
 const sauceRouter = express.Router();
+
 // pas besoinnnn !!!!
 // module.exports = function(app) {
 //   app.use(function(req, res, next) {
@@ -13,10 +14,12 @@ const sauceRouter = express.Router();
 //   });
 
 sauceRouter.route('/')
-    .post(controller.addSauce)
+    .post(controller.uploadImage ,controller.addSauce)
     .get(controller.allSauces)
 sauceRouter
-    .put("/:sauceId", controller.updateSauce)
+    .get("/:sauceId", controller.SauceById)
+    .put("/:sauceId", controller.uploadImage , controller.updateSauce)
+    .delete("/:sauceId",controller.deleteSauce)
 
 
 

@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const sauceRouter = require('./routes/sauce.route');
+const path = require("path")
 //const formidable = require("express-formidable");
 
 const app = express();
@@ -14,6 +15,8 @@ app.use(cors(corsOptions))
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
+// pour acceder au dossier public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // parse requests of content-type - application/x-www-form-urlencoded
 //app.use(bodyParser.urlencoded({ extended: true }));
